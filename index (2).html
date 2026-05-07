@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+  <meta name="theme-color" content="#FF6B00"/>
+  <meta name="description" content="KibaAlo — Livraison et services au Burkina Faso et au Niger"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+  <meta name="apple-mobile-web-app-title" content="KibaAlo"/>
+  <link rel="manifest" href="manifest.json"/>
+  <title>KibaAlo — Livraison & Services</title>
+  <link rel="stylesheet" href="css/style.css"/>
+  <!-- Socket.IO pour le tracking GPS temps réel -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.6.2/socket.io.min.js" defer></script>
+</head>
+<body>
+
+<div id="app">
+
+  <!-- TOP BAR — affiché uniquement dans l'app connectée -->
+  <div id="topbar" style="display:none;">
+    <div class="avatar avatar-md avatar-orange" id="topbar-avatar">?</div>
+    <div class="topbar-info">
+      <div class="topbar-greeting" id="topbar-greeting">Bonjour 👋</div>
+      <div class="topbar-name"    id="topbar-name">Chargement...</div>
+    </div>
+    <div class="topbar-actions">
+      <div class="icon-btn" id="notif-btn" title="Notifications">
+        🔔
+        <div class="notif-badge" id="notif-badge" style="display:none;">0</div>
+      </div>
+      <div class="icon-btn" id="cart-btn" title="Panier">
+        🛒
+        <div class="notif-badge" id="cart-badge" style="display:none;background:var(--orange);">0</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BARRE DE RECHERCHE — accueil et services uniquement -->
+  <div id="searchbar" style="display:none;">
+    <div class="search-wrap">
+      <span class="search-icon">🔍</span>
+      <input type="text" id="search-input" placeholder="Chercher boutiques, produits..." autocomplete="off" autocorrect="off"/>
+      <span style="font-size:18px;cursor:pointer;color:var(--text3);" id="filter-btn" title="Filtres">⚙️</span>
+    </div>
+  </div>
+
+  <!-- CONTENU PRINCIPAL scrollable -->
+  <div id="page" class="scroll" style="display:none;"></div>
+
+  <!-- BOTTOM NAVIGATION — reconstruite selon le rôle après connexion -->
+  <div id="bottomnav" style="display:none;">
+    <!-- Navigation client par défaut (remplacée dynamiquement pour livreur/commerçant) -->
+    <div class="nav-item" data-tab="home"     onclick="Router.navigate('home')"    ><div class="nav-ic">🏠</div><div class="nav-lbl">Accueil</div></div>
+    <div class="nav-item" data-tab="services" onclick="Router.navigate('services')"><div class="nav-ic">⚙️</div><div class="nav-lbl">Services</div></div>
+    <div class="nav-item nav-center" data-tab="cart" onclick="Router.navigate('cart')"><div class="nav-ic">🛒</div><div class="nav-lbl">Panier</div></div>
+    <div class="nav-item" data-tab="orders"   onclick="Router.navigate('orders')"  ><div class="nav-ic">📦</div><div class="nav-lbl">Commandes</div></div>
+    <div class="nav-item" data-tab="profile"  onclick="Router.navigate('profile')" ><div class="nav-ic">👤</div><div class="nav-lbl">Profil</div></div>
+  </div>
+
+  <!-- TOAST NOTIFICATIONS -->
+  <div id="toast"></div>
+
+</div><!-- /#app -->
+
+<!-- ══════════════════════════════════════════════════
+     SCRIPTS — ordre strict : api → app → views → init
+     ══════════════════════════════════════════════════ -->
+<script src="js/api.js"></script>
+<script src="js/app.js"></script>
+<script src="js/views.js"></script>
+
+<script>
+// ══════════════════════════════════════════════════════
+// INITIALISATION — attachement des événements globaux
+// ══════════════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded', () => {
+
+  // ── Bouton notifications ──────────────────────────
+  document.getElementById('notif-btn')?.addEventListener('click', () => {
+    Modal.open('notifications');
+  });
+
+  // ── Bouton panier (topbar) ────────────────────────
+  document.getElementById('cart-btn')?.addEventListener('click', () => {
+    Router.navigate('cart');
+  });
+
+  // ── Recherche avec debounce 400ms ─────────────────
+  let _searchTimer;
+  const searchEl = document.getElementById('search-input');
+  searchEl?.addEventListener('input', e => {
+    clearTimeout(_searchTimer);
+    const q = e.target.value.trim();
+    Store.set({ searchQuery: q });
+    if (q.length >= 2) {
+      _searchTimer = setTimeout(() => DataLoader.shops(), 400);
+    } else if (q.length === 0) {
+      DataLoader.shops();
+    }
+  });
+  searchEl?.addEventListener('keydown', e => {
+    if (e.key === 'Escape') { searchEl.value = ''; Store.set({ searchQuery:'' }); DataLoader.shops(); }
+  });
+
+  document.getElementById('filter-btn')?.addEventListener('click', () => {
+    Toast.show('⚙️ Filtres avancés — Bientôt disponible');
+  });
+
+  // ── Bouton retour Android / browser back ─────────
+  window.addEventListener('popstate', () => {
+    if (Store.get('modalOpen')) Modal.close();
+    else if (Store.get('screen') === 'app' && Store.get('activeTab') !== 'home') Router.navigate('home');
+  });
+
+  // ── Socket — mise à jour temps réel du statut ────
+  window.addEventListener('kba:order-status', e => {
+    const { status } = e.detail;
+    Toast.show('🔄 Statut mis à jour : ' + Fmt.statusLabel(status), 4000);
+    // Recharger les commandes si on est sur cet onglet
+    if (Store.get('activeTab') === 'orders') DataLoader.orders();
+  });
+
+  // ── PWA : prompt d'installation ──────────────────
+  let _pwaPrompt;
+  window.addEventListener('beforeinstallprompt', e => {
+    e.preventDefault(); _pwaPrompt = e;
+    setTimeout(() => {
+      if (Auth.isLoggedIn()) Toast.show('📲 Installez KibaAlo sur votre écran !', 5000);
+    }, 15000);
+  });
+
+  // ── Service Worker PWA ────────────────────────────
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  }
+
+  // ══════════════════════════════════════════════════
+  // BOOT
+  // ══════════════════════════════════════════════════
+  if (Auth.isLoggedIn() && Auth.getUser()) {
+    // Déjà connecté → app directement
+    Router.setupNav();
+    Store.set({ screen: 'app' });
+    Router.render();
+    loadInitialData();
+  } else {
+    // Pas connecté → splash → onboarding → role → auth
+    Views.splashScreen();
+  }
+});
+</script>
+
+</body>
+</html>

@@ -7,8 +7,8 @@
 const API_URL    = 'https://kibaalo-backend.onrender.com/api';
 const SOCKET_URL = 'https://kibaalo-backend.onrender.com';
 // Développement local : décommentez :
-// const API_URL    = 'http://localhost:5000/api';
-// const SOCKET_URL = 'http://localhost:5000';
+// const API_URL = 'https://kibaalo-backend.onrender.com/api';
+// const SOCKET_URL = 'https://kibaalo-backend.onrender.com';
 
 // ── Auth JWT ──────────────────────────────────────────────
 const Auth = {

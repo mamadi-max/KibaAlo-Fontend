@@ -308,8 +308,16 @@ const Views = {
         if (pwd !== pwd2)   { showErr('⚠️ Les mots de passe ne correspondent pas'); return; }
         const payload = { phone, firstName:fname, lastName:lname, password:pwd, role, country, city };
         if (role === 'commercant') {
-          payload.shopName     = el.querySelector('#f-shop')?.value?.trim();
-          payload.shopCategory = el.querySelector('#f-shopcat')?.value || 'other';
+  payload.shopName     = el.querySelector('#f-shop')?.value?.trim();
+  payload.shopCategory = el.querySelector('#f-shopcat')?.value || 'food';
+  
+  // ✅ Ajoutez cette vérification
+  if (!payload.shopName) {
+    showErr('⚠️ Veuillez entrer le nom de votre boutique');
+    return; // ← IMPORTANT : sortir avant d'envoyer
+  }
+}
+          payload.shopCategory = el.querySelector('#f-shopcat')?.value || 'food';
         }
         if (role === 'livreur') payload.vehicleType = el.querySelector('#f-vehicle')?.value || 'moto';
         res = await API.auth.register(payload);

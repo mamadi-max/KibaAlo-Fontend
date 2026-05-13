@@ -900,7 +900,7 @@ const Views = {
     SocketMgr.disconnect();
     OfflineCache.clear();
     Store.clearCart();
-    Store.set({ screen:'role', selectedRole:null, activeTab:'home', shops:[], orders:[], wallet:null, dashStats:null, myShopId:null });
+    Store.set({ screen:'role', selectedRole:null, activeTab:'home', shops:[], orders:[], wallet:null, dashStats:null, myShopId:null, authMode:'login' });
     localStorage.removeItem('kba_shop_id');
     Router.render();
     Toast.show('👋 Déconnecté avec succès');

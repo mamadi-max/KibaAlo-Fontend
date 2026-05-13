@@ -1,17 +1,26 @@
 {
-  "name": "KibaAlo — Livraison & Services",
+  "name": "KibaAlo — Livraison & Services Afrique de l'Ouest",
   "short_name": "KibaAlo",
-  "description": "Livraison et services au Burkina Faso et au Niger",
+  "description": "Livraison et services dans 16 pays d'Afrique de l'Ouest",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
-  "display_override": ["standalone", "minimal-ui", "browser"],
+  "display_override": [
+    "standalone",
+    "minimal-ui",
+    "browser"
+  ],
   "background_color": "#0A0A0F",
   "theme_color": "#FF6B00",
   "orientation": "portrait-primary",
   "lang": "fr",
   "dir": "ltr",
-  "categories": ["food", "shopping", "lifestyle"],
+  "categories": [
+    "food",
+    "shopping",
+    "lifestyle",
+    "business"
+  ],
   "prefer_related_applications": false,
   "related_applications": [],
   "icons": [
@@ -86,7 +95,11 @@
       "description": "Passer une commande",
       "url": "/?tab=home",
       "icons": [
-        { "src": "assets/icon-96.png", "sizes": "96x96", "type": "image/png" }
+        {
+          "src": "assets/icon-96.png",
+          "sizes": "96x96",
+          "type": "image/png"
+        }
       ]
     },
     {
@@ -95,8 +108,35 @@
       "description": "Suivre mes commandes",
       "url": "/?tab=orders",
       "icons": [
-        { "src": "assets/icon-96.png", "sizes": "96x96", "type": "image/png" }
+        {
+          "src": "assets/icon-96.png",
+          "sizes": "96x96",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Expédier un colis",
+      "short_name": "Colis",
+      "description": "Envoyer un colis",
+      "url": "/?tab=services",
+      "icons": [
+        {
+          "src": "assets/icon-96.png",
+          "sizes": "96x96",
+          "type": "image/png"
+        }
       ]
     }
-  ]
+  ],
+  "protocol_handlers": [],
+  "share_target": {
+    "action": "/share",
+    "method": "GET",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url"
+    }
+  }
 }

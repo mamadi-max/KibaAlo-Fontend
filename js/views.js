@@ -197,7 +197,7 @@ const Views = {
           <div class="field"><label>Email *</label>
             <div class="input-wrap">
               <span class="input-icon">📧</span>
-              <input id="f-email" type="email" placeholder="votre@email.com" autocomplete="email" style="padding-left:44px;"/>
+              <input id="f-email" type="email" placeholder="votre@email.com" autocomplete="off" style="padding-left:44px;"/>
             </div>
           </div>
           ${!isLogin?`

@@ -1,155 +1,307 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="fr" dir="ltr">
 <head>
   <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"/>
   <meta name="theme-color" content="#FF6B00"/>
-  <meta name="description" content="KibaAlo — Livraison et services au Burkina Faso et au Niger"/>
+  <meta name="description" content="KibaAlo v2 — Livraison et services dans 16 pays d'Afrique de l'Ouest"/>
+  <meta name="keywords" content="livraison, Burkina Faso, Niger, Afrique de l'Ouest, commande, services"/>
+  <meta name="author" content="KibaAlo"/>
+  <meta name="robots" content="index, follow"/>
+
+  <!-- PWA iOS -->
   <meta name="apple-mobile-web-app-capable" content="yes"/>
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
   <meta name="apple-mobile-web-app-title" content="KibaAlo"/>
+  <link rel="apple-touch-icon" href="assets/icon-192.png"/>
+  <link rel="apple-touch-icon" sizes="152x152" href="assets/icon-192.png"/>
+  <link rel="apple-touch-icon" sizes="180x180" href="assets/icon-192.png"/>
+  <link rel="apple-touch-icon" sizes="167x167" href="assets/icon-192.png"/>
+
+  <!-- PWA Manifest -->
   <link rel="manifest" href="manifest.json"/>
+
+  <!-- Icônes -->
+  <link rel="icon" type="image/png" sizes="32x32"  href="assets/icon-192.png"/>
+  <link rel="icon" type="image/png" sizes="192x192" href="assets/icon-192.png"/>
+  <link rel="icon" type="image/png" sizes="512x512" href="assets/icon-512.png"/>
+  <link rel="shortcut icon" href="assets/icon-192.png"/>
+
+  <!-- Microsoft Tiles -->
+  <meta name="msapplication-TileColor" content="#FF6B00"/>
+  <meta name="msapplication-TileImage" content="assets/icon-192.png"/>
+  <meta name="msapplication-navbutton-color" content="#FF6B00"/>
+
+  <!-- Open Graph -->
+  <meta property="og:type"        content="website"/>
+  <meta property="og:site_name"   content="KibaAlo"/>
+  <meta property="og:title"       content="KibaAlo — Livraison & Services Afrique de l'Ouest"/>
+  <meta property="og:description" content="Commandez, recevez, expédiez. 16 pays d'Afrique de l'Ouest."/>
+  <meta property="og:image"       content="assets/icon-512.png"/>
+  <meta property="og:locale"      content="fr_FR"/>
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card"        content="summary"/>
+  <meta name="twitter:title"       content="KibaAlo"/>
+  <meta name="twitter:description" content="Livraison & Services — 16 pays Afrique de l'Ouest"/>
+  <meta name="twitter:image"       content="assets/icon-512.png"/>
+
   <title>KibaAlo — Livraison & Services</title>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet"/>
+
+  <!-- CSS -->
   <link rel="stylesheet" href="css/style.css"/>
-  <!-- Socket.IO pour le tracking GPS temps réel -->
+
+  <!-- Socket.IO pour le tracking en temps réel -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.6.2/socket.io.min.js" defer></script>
 </head>
 <body>
 
 <div id="app">
 
-  <!-- TOP BAR — affiché uniquement dans l'app connectée -->
+  <!-- ═══════════════════════════════════════════
+       TOP BAR — visible uniquement en mode app
+       ═══════════════════════════════════════════ -->
   <div id="topbar" style="display:none;">
-    <div class="avatar avatar-md avatar-orange" id="topbar-avatar">?</div>
+    <div class="avatar avatar-md avatar-orange" id="topbar-avatar"
+         onclick="Modal.open('editProfile')" style="cursor:pointer;">?</div>
     <div class="topbar-info">
       <div class="topbar-greeting" id="topbar-greeting">Bonjour 👋</div>
       <div class="topbar-name"    id="topbar-name">Chargement...</div>
     </div>
     <div class="topbar-actions">
-      <div class="icon-btn" id="notif-btn" title="Notifications">
+      <div class="icon-btn" id="notif-btn" title="Notifications" onclick="Modal.open('notifications')">
         🔔
         <div class="notif-badge" id="notif-badge" style="display:none;">0</div>
       </div>
-      <div class="icon-btn" id="cart-btn" title="Panier">
+      <div class="icon-btn" id="cart-btn" title="Panier" onclick="Router.navigate('cart')">
         🛒
         <div class="notif-badge" id="cart-badge" style="display:none;background:var(--orange);">0</div>
       </div>
     </div>
   </div>
 
-  <!-- BARRE DE RECHERCHE — accueil et services uniquement -->
+  <!-- ═══════════════════════════════════════════
+       BARRE DE RECHERCHE avec suggestions
+       ═══════════════════════════════════════════ -->
   <div id="searchbar" style="display:none;">
-    <div class="search-wrap">
-      <span class="search-icon">🔍</span>
-      <input type="text" id="search-input" placeholder="Chercher boutiques, produits..." autocomplete="off" autocorrect="off"/>
-      <span style="font-size:18px;cursor:pointer;color:var(--text3);" id="filter-btn" title="Filtres">⚙️</span>
+    <div class="searchbar">
+      <div class="search-wrap">
+        <span class="search-icon">🔍</span>
+        <input
+          type="text"
+          id="search-input"
+          placeholder="Chercher boutiques, produits, services..."
+          autocomplete="off"
+          autocorrect="off"
+          autocapitalize="off"
+          spellcheck="false"
+        />
+        <span class="search-clear" id="search-clear" style="display:none;" onclick="Views._clearSearch()">✕</span>
+        <span style="font-size:18px;cursor:pointer;color:var(--text3);" id="filter-btn" title="Filtres" onclick="Modal.open('filters')">⚙️</span>
+      </div>
     </div>
   </div>
 
-  <!-- CONTENU PRINCIPAL scrollable -->
+  <!-- ═══════════════════════════════════════════
+       CONTENU PRINCIPAL scrollable
+       ═══════════════════════════════════════════ -->
   <div id="page" class="scroll" style="display:none;"></div>
 
-  <!-- BOTTOM NAVIGATION — reconstruite selon le rôle après connexion -->
+  <!-- ═══════════════════════════════════════════
+       BOTTOM NAVIGATION (reconstruite selon rôle)
+       ═══════════════════════════════════════════ -->
   <div id="bottomnav" style="display:none;">
-    <!-- Navigation client par défaut (remplacée dynamiquement pour livreur/commerçant) -->
-    <div class="nav-item" data-tab="home"     onclick="Router.navigate('home')"    ><div class="nav-ic">🏠</div><div class="nav-lbl">Accueil</div></div>
-    <div class="nav-item" data-tab="services" onclick="Router.navigate('services')"><div class="nav-ic">⚙️</div><div class="nav-lbl">Services</div></div>
-    <div class="nav-item nav-center" data-tab="cart" onclick="Router.navigate('cart')"><div class="nav-ic">🛒</div><div class="nav-lbl">Panier</div></div>
-    <div class="nav-item" data-tab="orders"   onclick="Router.navigate('orders')"  ><div class="nav-ic">📦</div><div class="nav-lbl">Commandes</div></div>
-    <div class="nav-item" data-tab="profile"  onclick="Router.navigate('profile')" ><div class="nav-ic">👤</div><div class="nav-lbl">Profil</div></div>
+    <!-- Navigation client par défaut -->
+    <div class="nav-item active" data-tab="home"     onclick="Router.navigate('home')"    ><div class="nav-ic">🏠</div><div class="nav-lbl">Accueil</div></div>
+    <div class="nav-item"        data-tab="services" onclick="Router.navigate('services')"><div class="nav-ic">⚙️</div><div class="nav-lbl">Services</div></div>
+    <div class="nav-item nav-center" data-tab="cart" onclick="Router.navigate('cart')"   ><div class="nav-ic">🛒</div><div class="nav-lbl">Panier</div></div>
+    <div class="nav-item"        data-tab="orders"   onclick="Router.navigate('orders')"  ><div class="nav-ic">📦</div><div class="nav-lbl">Commandes</div></div>
+    <div class="nav-item"        data-tab="profile"  onclick="Router.navigate('profile')" >
+      <div class="nav-ic">👤</div><div class="nav-lbl">Profil</div>
+      <div class="nav-badge" id="nav-notif-badge" style="display:none;">0</div>
+    </div>
   </div>
 
-  <!-- TOAST NOTIFICATIONS -->
+  <!-- ═══════════════════════════════════════════
+       TOAST NOTIFICATIONS
+       ═══════════════════════════════════════════ -->
   <div id="toast"></div>
 
 </div><!-- /#app -->
 
-<!-- ══════════════════════════════════════════════════
+<!-- ═══════════════════════════════════════════════
      SCRIPTS — ordre strict : api → app → views → init
-     ══════════════════════════════════════════════════ -->
+     ═══════════════════════════════════════════════ -->
 <script src="js/api.js"></script>
 <script src="js/app.js"></script>
 <script src="js/views.js"></script>
 
 <script>
 // ══════════════════════════════════════════════════════
-// INITIALISATION — attachement des événements globaux
+// INITIALISATION — Boot de l'application
 // ══════════════════════════════════════════════════════
 document.addEventListener('DOMContentLoaded', () => {
 
-  // ── Bouton notifications ──────────────────────────
-  document.getElementById('notif-btn')?.addEventListener('click', () => {
-    Modal.open('notifications');
-  });
+  // ── Vérifier si lien email/reset dans l'URL ──────────
+  const params = new URLSearchParams(window.location.search);
+  const verifyToken = params.get('token');
+  const pathIsVerify = window.location.pathname.includes('verify');
+  const pathIsReset  = window.location.pathname.includes('reset');
 
-  // ── Bouton panier (topbar) ────────────────────────
-  document.getElementById('cart-btn')?.addEventListener('click', () => {
-    Router.navigate('cart');
-  });
+  if (verifyToken && pathIsVerify) {
+    Store.set({ screen: 'verify-email', verifyToken });
+    Router.render(); return;
+  }
+  if (verifyToken && pathIsReset) {
+    Store.set({ screen: 'reset-password', resetToken: verifyToken });
+    Router.render(); return;
+  }
 
-  // ── Recherche avec debounce 400ms ─────────────────
-  let _searchTimer;
-  const searchEl = document.getElementById('search-input');
+  // ── Recherche avec debounce + suggestions ─────────────
+  let _searchTimer, _suggestTimer;
+  const searchEl  = document.getElementById('search-input');
+  const clearBtn  = document.getElementById('search-clear');
+
   searchEl?.addEventListener('input', e => {
-    clearTimeout(_searchTimer);
     const q = e.target.value.trim();
     Store.set({ searchQuery: q });
+    if (clearBtn) clearBtn.style.display = q ? '' : 'none';
+
+    clearTimeout(_suggestTimer);
+    clearTimeout(_searchTimer);
+
+    if (q.length === 0) {
+      document.getElementById('search-suggestions')?.remove();
+      Store.set({ searchResults: null, showSuggestions: false });
+      return;
+    }
     if (q.length >= 2) {
-      _searchTimer = setTimeout(() => DataLoader.shops(), 400);
-    } else if (q.length === 0) {
-      DataLoader.shops();
+      _suggestTimer = setTimeout(() => DataLoader.loadSuggestions(q), 200);
+      _searchTimer  = setTimeout(() => {
+        if (Store.get('activeTab') !== 'search') Router.navigate('search');
+        DataLoader.searchQuery(q);
+      }, 500);
     }
   });
+
   searchEl?.addEventListener('keydown', e => {
-    if (e.key === 'Escape') { searchEl.value = ''; Store.set({ searchQuery:'' }); DataLoader.shops(); }
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      document.getElementById('search-suggestions')?.remove();
+      Store.set({ showSuggestions: false });
+      if (searchEl.value.trim().length >= 2) {
+        Router.navigate('search');
+        DataLoader.searchQuery(searchEl.value.trim());
+      }
+    }
+    if (e.key === 'Escape') { Views._clearSearch(); }
   });
 
-  document.getElementById('filter-btn')?.addEventListener('click', () => {
-    Toast.show('⚙️ Filtres avancés — Bientôt disponible');
+  // ── Fermer suggestions au click extérieur ─────────────
+  document.addEventListener('click', e => {
+    if (!e.target.closest('#searchbar')) {
+      document.getElementById('search-suggestions')?.remove();
+    }
   });
 
-  // ── Bouton retour Android / browser back ─────────
+  // ── Bouton retour (Android / navigateur) ─────────────
   window.addEventListener('popstate', () => {
-    if (Store.get('modalOpen')) Modal.close();
-    else if (Store.get('screen') === 'app' && Store.get('activeTab') !== 'home') Router.navigate('home');
+    if (Store.get('modalOpen'))                Modal.close();
+    else if (Store.get('activeTab') !== 'home') Router.navigate('home');
   });
 
-  // ── Socket — mise à jour temps réel du statut ────
+  // ── Statut réseau ─────────────────────────────────────
+  window.addEventListener('online',  () => {
+    Store.set({ isOffline: false });
+    Toast.show('✅ Connexion rétablie');
+    if (Auth.isLoggedIn()) DataLoader.homeData();
+  });
+  window.addEventListener('offline', () => {
+    Store.set({ isOffline: true });
+    Toast.show('📡 Mode hors ligne — Données en cache (1h)', 4000);
+  });
+
+  // ── Temps réel — statut commande ─────────────────────
   window.addEventListener('kba:order-status', e => {
     const { status } = e.detail;
     Toast.show('🔄 Statut mis à jour : ' + Fmt.statusLabel(status), 4000);
-    // Recharger les commandes si on est sur cet onglet
     if (Store.get('activeTab') === 'orders') DataLoader.orders();
+    if (Store.get('modalOpen') === 'tracking') {
+      const orderId = Store.get('modalData')?.orderId;
+      if (orderId) DataLoader.trackOrder(orderId);
+    }
   });
 
-  // ── PWA : prompt d'installation ──────────────────
+  // ── PWA — prompt d'installation ───────────────────────
   let _pwaPrompt;
   window.addEventListener('beforeinstallprompt', e => {
-    e.preventDefault(); _pwaPrompt = e;
+    e.preventDefault();
+    _pwaPrompt = e;
     setTimeout(() => {
-      if (Auth.isLoggedIn()) Toast.show('📲 Installez KibaAlo sur votre écran !', 5000);
-    }, 15000);
+      if (Auth.isLoggedIn() && Store.get('screen') === 'app') {
+        Toast.show('📲 Installez KibaAlo sur votre écran d\'accueil !', 6000);
+      }
+    }, 20000);
   });
 
-  // ── Service Worker PWA ────────────────────────────
+  window.addEventListener('appinstalled', () => {
+    Toast.show('🎉 KibaAlo installé avec succès !');
+    _pwaPrompt = null;
+  });
+
+  // ── Service Worker ────────────────────────────────────
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('sw.js').catch(() => {});
+    navigator.serviceWorker.register('/sw.js', { scope: '/' })
+      .then(reg => {
+        reg.addEventListener('updatefound', () => {
+          const worker = reg.installing;
+          worker?.addEventListener('statechange', () => {
+            if (worker.state === 'installed' && navigator.serviceWorker.controller) {
+              Toast.show('🔄 Mise à jour disponible — Rechargez la page', 6000);
+            }
+          });
+        });
+      })
+      .catch(err => console.log('SW:', err.message));
+
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      window.location.reload();
+    });
   }
 
-  // ══════════════════════════════════════════════════
-  // BOOT
-  // ══════════════════════════════════════════════════
+  // ── Boot principal ────────────────────────────────────
+  const screen = Store.get('screen');
+  if (screen === 'verify-email' || screen === 'reset-password') {
+    Router.render(); return;
+  }
+
   if (Auth.isLoggedIn() && Auth.getUser()) {
-    // Déjà connecté → app directement
+    // Déjà connecté → app
     Router.setupNav();
     Store.set({ screen: 'app' });
     Router.render();
     loadInitialData();
   } else {
-    // Pas connecté → splash → onboarding → role → auth
+    // Pas connecté → splash → onboarding → inscription
     Views.splashScreen();
   }
 });
+
+// ── Méthode globale clearSearch ────────────────────────
+Views._clearSearch = function() {
+  const el = document.getElementById('search-input');
+  const cb = document.getElementById('search-clear');
+  if (el) el.value = '';
+  if (cb) cb.style.display = 'none';
+  document.getElementById('search-suggestions')?.remove();
+  Store.set({ searchQuery: '', searchResults: null, showSuggestions: false });
+  if (Store.get('activeTab') === 'search') Router.navigate('home');
+};
 </script>
 
 </body>

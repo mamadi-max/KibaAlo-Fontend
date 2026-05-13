@@ -2,45 +2,58 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
   <meta name="theme-color" content="#FF6B00"/>
   <title>KibaAlo — Hors ligne</title>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root { --orange: #FF6B00; --bg: #0A0A0F; --text: #F0EDE8; --text2: #A8A4A0; }
     body {
-      font-family: 'Sora', sans-serif;
-      background: #0A0A0F;
-      color: #F0EDE8;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      min-height: 100vh;
-      padding: 32px;
-      text-align: center;
+      font-family: 'Sora', -apple-system, sans-serif;
+      background: var(--bg); color: var(--text);
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      min-height: 100vh; padding: 32px; text-align: center;
+      -webkit-font-smoothing: antialiased;
     }
-    .icon { font-size: 80px; margin-bottom: 24px; animation: float 3s ease-in-out infinite; }
-    @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-12px)} }
-    h1 { font-size: 28px; font-weight: 800; margin-bottom: 12px; }
-    h1 span { color: #FF6B00; }
-    p { color: #A8A4A0; font-size: 15px; line-height: 1.6; max-width: 280px; margin-bottom: 32px; }
-    button {
-      background: #FF6B00;
-      color: #fff;
-      border: none;
-      border-radius: 12px;
-      padding: 16px 32px;
-      font-size: 15px;
-      font-weight: 700;
-      cursor: pointer;
+    .logo { width: 80px; height: 80px; background: var(--orange); border-radius: 24px;
+      display: flex; align-items: center; justify-content: center; font-size: 40px;
+      margin: 0 auto 24px; animation: float 3s ease-in-out infinite; box-shadow: 0 4px 20px rgba(255,107,0,0.3); }
+    @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
+    h1 { font-size: 28px; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 12px; }
+    h1 span { color: var(--orange); }
+    p { color: var(--text2); font-size: 15px; line-height: 1.6; max-width: 280px; margin-bottom: 32px; }
+    .btn {
+      background: var(--orange); color: #fff; border: none; border-radius: 12px;
+      padding: 15px 32px; font-size: 15px; font-weight: 700; cursor: pointer;
+      display: inline-flex; align-items: center; gap: 8px; margin: 8px;
+      font-family: inherit; transition: all 0.2s;
     }
-    button:active { transform: scale(0.97); }
+    .btn:active { transform: scale(0.97); }
+    .btn-sec { background: rgba(255,107,0,0.1); color: var(--orange); border: 1.5px solid rgba(255,107,0,0.3); }
+    .wave { font-size: 48px; animation: wave 2s ease-in-out infinite; margin-top: 32px; }
+    @keyframes wave { 0%,100%{transform:rotate(0)} 25%{transform:rotate(20deg)} 75%{transform:rotate(-20deg)} }
+    .info { font-size: 12px; color: #555; margin-top: 20px; }
   </style>
 </head>
 <body>
-  <div class="icon">🛵</div>
+  <div class="logo">🛵</div>
   <h1><span>Kiba</span>Alo</h1>
-  <p>Vous êtes hors ligne. Vérifiez votre connexion internet et réessayez.</p>
-  <button onclick="window.location.reload()">🔄 Réessayer</button>
+  <p>Vous êtes actuellement hors ligne. Vos données en cache sont disponibles pendant <strong>1 heure</strong> après votre dernière connexion.</p>
+  <div>
+    <button class="btn" onclick="tryReload()">🔄 Réessayer</button>
+    <button class="btn btn-sec" onclick="goBack()">← Retour</button>
+  </div>
+  <div class="wave">📡</div>
+  <div class="info">KibaAlo v2.0 — Afrique de l'Ouest 🌍</div>
+
+  <script>
+    function tryReload() {
+      if (navigator.onLine) { window.location.reload(); }
+      else { document.querySelector('p').textContent = 'Toujours hors ligne. Vérifiez votre connexion Wi-Fi ou données mobiles.'; }
+    }
+    function goBack() { if (history.length > 1) history.back(); else window.location.href = '/'; }
+    window.addEventListener('online', () => { window.location.href = '/'; });
+  </script>
 </body>
 </html>

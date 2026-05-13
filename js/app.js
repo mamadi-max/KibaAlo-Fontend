@@ -705,7 +705,7 @@ window.addEventListener('kba:session-expired', () => {
   Toast.show('⚠️ Session expirée. Reconnectez-vous.');
   Auth.logout();
   SocketMgr.disconnect();
-  Store.set({ screen:'role', selectedRole:null, activeTab:'home', shops:[], orders:[], wallet:null });
+  Store.set({ screen:'role', selectedRole:null, activeTab:'home', shops:[], orders:[], wallet:null, authMode:'login' });
   Router.render();
 });
 
